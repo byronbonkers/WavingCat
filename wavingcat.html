@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Wave Button - Waving Cat!</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ovenplayer/dist/ovenplayer.js"></script>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #111;
+            color: #00FF00; /* Neon Green */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #FF1493; /* Neon Pink */
+            text-shadow: 3px 3px 6px rgba(0, 255, 0, 0.3), 0 0 25px #00FF00;
+        }
+
+        .player-wrapper {
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 900px;
+            width: 640px;
+            height: 480px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px #00FF00, 0 0 40px #FF1493;
+        }
+
+        /* Button Styling */
+        #waveButton {
+            padding: 20px 40px;
+            font-size: 1.2em;
+            color: #000;
+            background-color: #FFFF00; /* Neon Yellow */
+            border: 2px solid #00FF00; 
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
+        }
+
+        #waveButton:hover {
+            background-color: #FF4500; /* Neon Orange */
+            transform: scale(1.1);
+        }
+
+        #waveButton:active {
+            background-color: #FF6347; /* Tomato Red */
+            transform: scale(1);
+        }
+
+        /* Disabled Button State */
+        #waveButton:disabled {
+            background-color: #808080; /* Greyed out */
+            cursor: not-allowed;
+            opacity: 0.6; /* Fade effect */
+        }
+
+        /* Message for Cooldown */
+        #cooldownMessage {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #FF1493;
+            visibility: hidden;
+        }
+
+        /* Footer */
+        footer {
+            font-size: 1em;
+            color: #FF1493;
+            position: absolute;
+            bottom: 10px;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Cat Wave Button - make the cat wave!</h1>
+
+    <!-- Webcam Player -->
+    <div class="player-wrapper">
+        <div id="player_id"></div>
+    </div>
+
+    <!-- Cooldown Message -->
+    <div id="cooldownMessage">Please wait 5 seconds before clicking again.</div>
+
+    <!-- Wave Button -->
+    <button id="waveButton">Make the Cat Wave!</button>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 ClawClan | idk what to put here</p>
+    </footer>
+
+    <script>
+        // Initialize OvenPlayer
+        const player = OvenPlayer.create('player_id', {
+            autoStart: true,
+            aspectRatio: '4:3',
+            disableSeekUI: true,
+            showBigPlayButton: false,
+            controls: false,
+            mute: true,     // Mute video to ensure autoplay works on all browsers
+            waterMark: {
+            text: `Cat Cam`,
+            font: {
+            'font-size': '20px',
+            'color': '#fff',
+            'font-weight': 'bold'
+            },
+            position: 'top-right'
+        },
+            sources: [
+                {
+                    label: 'CatCam',
+                    // Set the type to 'webrtc'
+                    type: 'webrtc',
+                    // Set the file to WebRTC Signaling URL with OvenMediaEngine 
+                    file: 'wss://clawclan.co.uk:3334/app/stream5'
+                }
+            ]
+        });
+
+        // MQTT connection settings
+        const brokerUrl = 'wss://clawclan.co.uk:19132';
+        const controlTopic = 'servo/controls';
+        let client;
+        let reconnectAttempts = 0;
+
+        function connectToMQTT() {
+            console.log(`Attempting to connect to MQTT broker: ${brokerUrl}`);
+            client = mqtt.connect(brokerUrl, {
+                username: 'test',
+                password: 'test',
+                reconnectPeriod: 0, // disables automatic reconnections
+                protocolVersion: 4,
+                clean: true,
+                wsOptions: {
+                    rejectUnauthorized: true 
+                }
+            });
+
+            // MQTT listeners
+            client.on('connect', () => {
+                console.log('Connected to MQTT broker');
+                reconnectAttempts = 0; // Reset attempts
+            });
+
+            client.on('close', () => {
+                console.warn('MQTT connection closed. Attempting to reconnect...');
+                attemptReconnect();
+            });
+
+            client.on('error', (err) => {
+                console.error('MQTT connection error:', err);
+            });
+
+            client.stream.on('error', (error) => {
+                console.error('WebSocket error detected:', error);
+            });
+
+            // Additional WebSocket Debugging
+            client.stream.on('open', () => {
+                console.log('WebSocket connection opened');
+            });
+
+            client.stream.on('message', (data) => {
+                console.log('WebSocket message received:', data);
+            });
+
+            client.stream.on('close', () => {
+                console.warn('WebSocket connection closed');
+            });
+        }
+
+        // In case the websockets disconnect
+        function attemptReconnect() {
+            const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Cap at 30 seconds
+            reconnectAttempts++;
+            setTimeout(() => {
+                console.log(`Reconnecting to MQTT (attempt ${reconnectAttempts})...`);
+                connectToMQTT();
+            }, delay);
+        }
+
+        // Button cooldown function
+        let buttonCooldown = false;
+        const cooldownTime = 5000; // 5 seconds cooldown
+
+        function handleButtonClick() {
+            if (client && client.connected) {
+                client.publish(controlTopic, 'move_servo');
+                console.log('Command "move_servo" sent');
+
+                // Show the cooldown message and grey out the button
+                document.getElementById('waveButton').disabled = true;
+                document.getElementById('cooldownMessage').style.visibility = 'visible';
+
+                // Disable the button and start cooldown
+                setTimeout(() => {
+                    document.getElementById('waveButton').disabled = false;
+                    document.getElementById('cooldownMessage').style.visibility = 'hidden';
+                }, cooldownTime);
+            } else {
+                console.warn('MQTT client not connected, cannot send command');
+            }
+        }
+
+        // listener for the button click
+        document.getElementById('waveButton').addEventListener('click', handleButtonClick);
+
+        // calls the function to connect
+        connectToMQTT();
+    </script>
+</body>
+</html>
