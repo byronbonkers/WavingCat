@@ -68,7 +68,6 @@ def on_message(client, userdata, msg):
             move_servo()  # Actually move the servo
             last_wave_time = current_time  # Update the last wave time after processing the command
             logging.info("Cooldown started, waiting for 5 seconds.")
-            sleep(TIMEOUT)  # Wait for the cooldown period (5 seconds)
             waving = False  # Reset waving flag after cooldown period
         elif command == "move_servo" and time.time() - last_wave_time < TIMEOUT:
             logging.info("Command discarded due to cooldown.")  # Log when command is discarded
