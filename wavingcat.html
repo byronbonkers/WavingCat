@@ -199,11 +199,14 @@
             }, delay);
         }
 
-        // Button cooldown function
-        let buttonCooldown = false;
-        const cooldownTime = 5000; // 5 seconds cooldown
+        document.getElementById('waveButton').addEventListener('click', () => {
+            // If the button is on cooldown, prevent further action
+            if (buttonCooldown) {
+                return;
+            }
 
-        function handleButtonClick() {
+            buttonCooldown = true; // Set cooldown flag
+
             if (client && client.connected) {
                 client.publish(controlTopic, 'move_servo');
                 console.log('Command "move_servo" sent');
@@ -212,18 +215,16 @@
                 document.getElementById('waveButton').disabled = true;
                 document.getElementById('cooldownMessage').style.visibility = 'visible';
 
-                // Disable the button and start cooldown
+                // Start the cooldown timer
                 setTimeout(() => {
+                    buttonCooldown = false; // Reset cooldown flag
                     document.getElementById('waveButton').disabled = false;
                     document.getElementById('cooldownMessage').style.visibility = 'hidden';
                 }, cooldownTime);
             } else {
                 console.warn('MQTT client not connected, cannot send command');
             }
-        }
-
-        // listener for the button click
-        document.getElementById('waveButton').addEventListener('click', handleButtonClick);
+        });
 
         // calls the function to connect
         connectToMQTT();
