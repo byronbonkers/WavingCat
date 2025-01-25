@@ -198,6 +198,10 @@
                 connectToMQTT();
             }, delay);
         }
+        
+        // Button cooldown function
+        const cooldownTime = 5000; // 5 seconds cooldown
+        let buttonCooldown = false;
 
         document.getElementById('waveButton').addEventListener('click', () => {
             // If the button is on cooldown, prevent further action
