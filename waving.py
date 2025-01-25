@@ -11,6 +11,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 # Flag to track cooldown and time of last action
 waving = False
 last_wave_time = 0  # Store timestamp of last wave command
+TIMEOUT = 5  # Timeout period in seconds (change to 5 seconds)
 
 # Define logging for MQTT
 def on_log(client, userdata, level, buf):
@@ -59,16 +60,18 @@ def on_message(client, userdata, msg):
 
         # Get the current time
         current_time = time.time()
-        if command == "move_servo" and not waving:
+
+        # Check if cooldown period has passed and if we're allowed to process the command
+        if command == "move_servo" and time.time() - last_wave_time >= TIMEOUT:
             logging.info("Processing 'move_servo' command...")
-            waving = True 
-            move_servo()  # actually move the servo
-            last_wave_time = current_time  
+            waving = True  # Start cooldown
+            move_servo()  # Actually move the servo
+            last_wave_time = current_time  # Update the last wave time after processing the command
             logging.info("Cooldown started, waiting for 5 seconds.")
-            sleep(5)  # Wait for 5 seconds
+            sleep(TIMEOUT)  # Wait for the cooldown period (5 seconds)
             waving = False  # Reset waving flag after cooldown period
-        elif command == "move_servo" and waving:
-            logging.info("Command discarded due to cooldown.")  # when command is discarded
+        elif command == "move_servo" and time.time() - last_wave_time < TIMEOUT:
+            logging.info("Command discarded due to cooldown.")  # Log when command is discarded
         else:
             logging.info("Invalid command or no action needed.")
 
