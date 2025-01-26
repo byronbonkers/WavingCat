@@ -72,7 +72,7 @@ def on_message(client, userdata, msg):
         elif command == "move_servo" and time.time() - last_wave_time < TIMEOUT:
             logging.info("Command discarded due to cooldown.")  # Log when command is discarded
         else:
-            logging.info("Invalid command or no action needed.")
+            logging.info("Invalid command or no action needed.") # log invalid command error for debugging
             # finished moving servo
 
 # MQTT client setup
