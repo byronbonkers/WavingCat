@@ -9,9 +9,9 @@ import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Flag to track cooldown and time of last action
-waving = False
+waving = False # sets waving to false to ensure that the cat can wave
 last_wave_time = 0  # Store timestamp of last wave command
-TIMEOUT = 5  # Timeout period in seconds (change to 5 seconds)
+TIMEOUT = 5  # Timeout period in seconds 
 
 # Define logging for MQTT
 def on_log(client, userdata, level, buf):
@@ -98,7 +98,7 @@ client.subscribe(MQTT_TOPIC) # subscribes to the servo/controls topic
 
 # Start MQTT loop yes
 try:
-    client.loop_start()
+    client.loop_start() # listens for MQTT commands
     logging.info("Listening for MQTT commands...")
     while True:
         sleep(1)
@@ -110,5 +110,5 @@ finally:
     logging.info("Disconnecting MQTT client...")
     pi.set_servo_pulsewidth(SERVO_PIN, 0)  # Turn off the servo
     pi.stop()  # Stop pigpio
-    client.loop_stop()
-    client.disconnect()
+    client.loop_stop() # Stops the loop
+    client.disconnect() #disconnects the MQTT client
