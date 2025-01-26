@@ -143,7 +143,7 @@
         const controlTopic = 'servo/controls';
         let client;
         let reconnectAttempts = 0;
-
+        // attemps to connect to the MQTT broker
         function connectToMQTT() {
             console.log(`Attempting to connect to MQTT broker: ${brokerUrl}`);
             client = mqtt.connect(brokerUrl, {
