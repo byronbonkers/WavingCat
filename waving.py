@@ -85,15 +85,15 @@ client.tls_set(
     cert_reqs=ssl.CERT_REQUIRED,
     tls_version=ssl.PROTOCOL_TLS_CLIENT
 )
-client.tls_insecure_set(False)
+client.tls_insecure_set(False) # sets the tls to secure
 
-client.username_pw_set(username="test", password="test")
+client.username_pw_set(username="test", password="test") # uses the username test and the passwd test
 
-client.on_message = on_message
+client.on_message = on_message # when a message gets recieved
 
-client.connect('clawclan.co.uk', 19132)
+client.connect('clawclan.co.uk', 19132) # connects to the mqtt server
 
-client.subscribe(MQTT_TOPIC)
+client.subscribe(MQTT_TOPIC) # subscribes to the servo/controls topic
 
 # Start MQTT loop
 try:
