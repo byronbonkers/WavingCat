@@ -203,6 +203,15 @@
             }, delay);
         }
 
+        const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+
+            if (isFirefox) {
+            console.log("Your browser is Firefox and is currently unsupported");
+            alert("Firefox is unfortunately unsupported with this")
+            } else {
+            console.log("Your browser is not Firefox");
+            }
+
         // Button cooldown function
         const cooldownTime = 5000; // 5 seconds cooldown
         let buttonCooldown = false;
