@@ -95,7 +95,7 @@ client.connect('clawclan.co.uk', 19132) # connects to the mqtt server
 
 client.subscribe(MQTT_TOPIC) # subscribes to the servo/controls topic
 
-# Start MQTT loop
+# Start MQTT loop yes
 try:
     client.loop_start()
     logging.info("Listening for MQTT commands...")
