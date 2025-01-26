@@ -162,16 +162,16 @@
                 console.log('Connected to MQTT broker');
                 reconnectAttempts = 0; // Reset attempts
             });
-
+            // if the MQTT connection closes
             client.on('close', () => {
                 console.warn('MQTT connection closed. Attempting to reconnect...');
                 attemptReconnect();
             });
-
+            // if an MQTT connection error is detected
             client.on('error', (err) => {
                 console.error('MQTT connection error:', err);
             });
-
+            // if a websocket error is detected
             client.stream.on('error', (error) => {
                 console.error('WebSocket error detected:', error);
             });
@@ -180,11 +180,11 @@
             client.stream.on('open', () => {
                 console.log('WebSocket connection opened');
             });
-
+            // if a websocket message is recieved
             client.stream.on('message', (data) => {
                 console.log('WebSocket message received:', data);
             });
-
+            // if the websocket connection closes
             client.stream.on('close', () => {
                 console.warn('WebSocket connection closed');
             });
