@@ -73,9 +73,10 @@ def on_message(client, userdata, msg):
             logging.info("Command discarded due to cooldown.")  # Log when command is discarded
         else:
             logging.info("Invalid command or no action needed.")
+            # finished moving servo
 
 # MQTT client setup
-client = mqtt.Client(transport="websockets")
+client = mqtt.Client(transport="websockets") #sets the client connection to websockets!!!!
 ca_certs = "/etc/ssl/certs/ISRG_Root_X1.pem"
 client.on_log = on_log  # Enable MQTT logging
 
