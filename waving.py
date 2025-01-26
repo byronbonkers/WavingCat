@@ -58,7 +58,7 @@ def on_message(client, userdata, msg):
         command = msg.payload.decode("utf-8")
         logging.info(f"Command received: {command}")
 
-        # Get the current time
+        # Get the current time for the cooldown
         current_time = time.time()
 
         # Check if cooldown period has passed and if we're allowed to process the command
